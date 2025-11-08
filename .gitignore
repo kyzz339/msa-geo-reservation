@@ -1,0 +1,61 @@
+# ==================================================
+# Gradle / Build
+# ==================================================
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Gradle Wrapper
+gradle/
+!gradle/wrapper/
+!gradlew
+!gradlew.bat
+
+# ==================================================
+# Spring / IntelliJ / STS
+# ==================================================
+HELP.md
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+.idea/
+*.iml
+*.ipr
+*.iws
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# ==================================================
+# NetBeans / VS Code
+# ==================================================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+.vscode/
+
+# ==================================================
+# Logs / Temp / OS files
+# ==================================================
+logs/
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# ==================================================
+# Environment / Secrets
+# ==================================================
+.env
+*.local
+*.secret
