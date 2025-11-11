@@ -38,4 +38,8 @@ public class Store implements Serializable {
     @Column
     private boolean active;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id" , nullable = false)
+    private User owner;
+
 }
