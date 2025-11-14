@@ -1,0 +1,5 @@
+
+jwt:
+  secret: jjjhhhyyyuunnn1241241241k2j4b12jk4b1j4k
+  access-token-validity: 1800000     # 30분
+  refresh-token-validity: 604800000  # 7일
