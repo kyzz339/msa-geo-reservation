@@ -24,8 +24,9 @@ ext {
 dependencies {
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
     api 'org.postgresql:postgresql'
-    api 'org.hibernate:hibernate-spatial:6.6.4.Final'
+    api "org.hibernate.orm:hibernate-spatial:6.6.33.Final"
     api 'org.locationtech.jts:jts-core:1.19.0'
+    api 'org.geolatte:geolatte-geom:1.9.1'
 
     api "com.querydsl:querydsl-jpa:${queryDslVersion}:jakarta"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}:jakarta"

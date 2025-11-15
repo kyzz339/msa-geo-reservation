@@ -1,7 +1,4 @@
 rootProject.name = 'demo'
 
 include("core")
-include("auth-service")
-include("store-service")
-include("reservation-service")
-include("gateway-service")
+include("web")
