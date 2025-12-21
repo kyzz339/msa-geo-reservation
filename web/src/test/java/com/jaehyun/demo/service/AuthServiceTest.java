@@ -13,9 +13,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
@@ -29,6 +32,10 @@ public class AuthServiceTest {
     private JwtTokenProvider jwtTokenProvider;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private RedisTemplate<String, String> redisTemplate;
+    @Mock
+    private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
     private AuthService authService;
@@ -71,6 +78,8 @@ public class AuthServiceTest {
                         .password("encoded-password")
                         .build();
 
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
         when(userDao.findByEmail("test@test.com")).thenReturn(Optional.of(exsistUser));
         when(passwordEncoder.matches("password", "encoded-password")).thenReturn(true);
         when(jwtTokenProvider.generateAccessToken(anyString(),any())).thenReturn("accessToken");
@@ -83,6 +92,12 @@ public class AuthServiceTest {
 
         verify(userDao, times(1)).findByEmail("test@test.com");
 
+        verify(valueOperations, times(1)).set(
+                eq("RT:" + "test@test.com"),
+                eq("refreshToken"),
+                anyLong(),
+                any(TimeUnit.class)
+        );
     }
 
 

@@ -44,33 +44,66 @@
 
 <th:block th:fragment="header-js">
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function () {
             const token = localStorage.getItem('accessToken');
             const guestMenu = document.getElementById('auth-guest');
             const userMenu = document.getElementById('auth-user');
             const nameDisplay = document.getElementById('user-name-display');
 
-            console.log("Token check:", token);
             if (token) {
-                guestMenu.style.display = 'none';
-                userMenu.style.display = 'block';
-
-                fetch('/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                    .then(res => {
-                        if (!res.ok) throw new Error("인증 실패"); // 서버 응답이 200이 아니면 바로 catch로 보냄
-                        return res.json();
-                    })
-                    .then(data => {
+                try {
+                    // 유저 정보 가져오기 시도
+                    const response = await fetchWithAuth('/auth/me');
+                    if (response.ok) {
+                        const data = await response.json();
                         nameDisplay.innerText = data.name;
-                    })
-                    .catch(() => {
-                        // 토큰이 이상하거나 만료되었다면 로컬 스토리지를 비우고 다시 로그인하게 함
-                        logout();
-                    });
+                        guestMenu.style.display = 'none';
+                        userMenu.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error("인증 처리 중 오류:", error);
+                }
             }
         });
+
+        async function fetchWithAuth(url , options = {}){
+            let token = localStorage.getItem('accessToken');
+
+            options.headers = {
+                ...options.headers,
+                'Authorization':`Bearer ${token}`
+            };
+
+            let response = await fetch(url,options);
+
+            if (response.status === 401) {
+                const refreshToken = localStorage.getItem('refreshToken');
+                if (!refreshToken) {
+                    logout();
+                    return response;
+                }
+
+                // 서버에 재발급 요청
+                const reissueRes = await fetch('/auth/reissue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refreshToken })
+                });
+
+                if (reissueRes.ok) {
+                    const data = await reissueRes.json();
+                    localStorage.setItem('accessToken', data.accessToken);
+
+                    // 새 토큰으로 헤더 교체 후 원래 요청 재시도
+                    options.headers['Authorization'] = `Bearer ${data.accessToken}`;
+                    return await fetch(url, options);
+                } else {
+                    // 리프레시 토큰도 무효하다면 로그아웃
+                    logout();
+                }
+            }
+            return response;
+        }
 
         function logout() {
             localStorage.removeItem('accessToken');

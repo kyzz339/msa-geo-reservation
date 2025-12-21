@@ -88,6 +88,9 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(userDetails, null, Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role.name())));
     }
 
+    public long getRefreshTokenValidity(){
+        return refreshTokenValidity;
+    }
     private Jws<Claims> parseClaims(String token){
         return Jwts.parserBuilder()
                 .setSigningKey(key)

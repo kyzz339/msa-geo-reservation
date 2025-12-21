@@ -1,5 +1,6 @@
 package com.jaehyun.demo.controller;
 
+import com.jaehyun.demo.dto.request.ReissueRequest;
 import com.jaehyun.demo.dto.request.SignInRequest;
 import com.jaehyun.demo.dto.request.SignUpRequest;
 import com.jaehyun.demo.dto.response.SignUpResponse;
@@ -47,7 +48,11 @@ public class AuthController {
         TokenResponse tokenResponse = authService.signIn(request);
 
         return ResponseEntity.ok(tokenResponse);
+    }
 
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenResponse> reissue(@RequestBody ReissueRequest request){
+        return ResponseEntity.ok(authService.reissue(request.getRefreshToken()));
     }
 
     @GetMapping("/me")

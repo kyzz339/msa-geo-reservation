@@ -9,8 +9,11 @@ import com.jaehyun.demo.dto.response.SignUpResponse;
 import com.jaehyun.demo.dto.response.TokenResponse;
 import com.jaehyun.demo.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class AuthService {
     private final UserDao userDao;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public SignUpResponse signUp(SignUpRequest request) {
 
@@ -50,8 +54,40 @@ public class AuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getType());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail(), user.getType());
 
+        redisTemplate.opsForValue().set(
+                "RT:" + signInRequest.getEmail(),
+                refreshToken,
+                jwtTokenProvider.getRefreshTokenValidity(),
+                TimeUnit.MILLISECONDS
+        );
+
         return TokenResponse.builder()
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    public TokenResponse reissue(String refreshToken){
+
+        if(!jwtTokenProvider.validateToken(refreshToken)){
+            throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
+        }
+
+        String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+
+        String savedRefreshToken = redisTemplate.opsForValue().get("RT:" + email);
+
+        if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
+            throw new RuntimeException("로그인 정보가 일치하지 않습니다.");
+        }
+
+        User user = userDao.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), user.getType());
+
+        return TokenResponse.builder()
+                .accessToken(newAccessToken)
                 .refreshToken(refreshToken)
                 .build();
     }
